@@ -1,13 +1,16 @@
 {
   "name": "gen-env-types",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "bin": {
+    "gen-env-types": "gen-env-types.js"
   },
+  "description": "",
+  "main": "gen-env-types.js",
   "keywords": [],
-  "author": "",
+  "author": "Ben",
+  "homepage": "https://github.com/benawad/gen-env-types",
+  "repository": "github:benawad/gen-env-types",
+  "bugs": "https://github.com/benawad/gen-env-types/issues",
   "license": "ISC",
   "dependencies": {
     "chalk": "^4.0.0"

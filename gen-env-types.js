@@ -1,7 +1,8 @@
-const { readFileSync, writeFileSync } = require("fs");
-const { join } = require("path");
+#!/usr/bin/env node
+const { readFileSync, writeFileSync, existsSync } = require("fs");
 const pkg = require("./package.json");
 const chalk = require("chalk");
+const { join } = require("path");
 
 const printVersion = () => console.log("v" + pkg.version);
 const printHelp = (exitCode) => {
@@ -23,6 +24,11 @@ const printHelp = (exitCode) => {
 
   return process.exit(exitCode);
 };
+
+function showError(msg) {
+  console.log(chalk`{red Error:} ${msg}`);
+  process.exit(1);
+}
 
 const parseArgs = (args) => {
   const cliConfig = {
@@ -47,7 +53,7 @@ const parseArgs = (args) => {
       case "--types-output":
         const typesOutput = args.shift();
         if (!typesOutput || !typesOutput.endsWith(".d.ts")) {
-          throw new Error(
+          showError(
             "Expected output file to end in .d.ts, bad input: " + typesOutput
           );
         }
@@ -57,16 +63,16 @@ const parseArgs = (args) => {
       case "--example-env-path":
         const exampleEnvPath = args.shift();
         if (!exampleEnvPath) {
-          throw new Error("Expected example env path but none found");
+          showError("Expected example env path but none found");
         }
-        if (!fs.existsSync(exampleEnvPath)) {
-          throw new Error("Example env path does not exist: ", exampleEnvPath);
+        if (!existsSync(exampleEnvPath)) {
+          showError("Example env path does not exist: ", exampleEnvPath);
         }
         cliConfig.exampleEnvPath = exampleEnvPath;
         break;
       default: {
-        if (!fs.existsSync(arg)) {
-          throw new Error("Path to .env file doesn't exist: " + arg);
+        if (!existsSync(arg)) {
+          showError(".env file doesn't exist at path: " + arg);
         }
         cliConfig.envPath = arg;
       }
@@ -99,7 +105,7 @@ function writeEnvTypes(envString, path) {
   export interface ProcessEnv {
     ${envString
       .split("\n")
-      .map((x) => `${x.split("=")[0]}: string;`)
+      .map((x, i) => `${i ? "    " : ""}${x.split("=")[0]}: string;`)
       .join("\n")}
   }
 }
@@ -113,11 +119,12 @@ function writeExampleEnv(envString, path) {
     `${envString
       .split("\n")
       .map((x) => `${x.split("=")[0]}=`)
-      .join("\n")}`
+      .join("\n")}
+      `
   );
 }
 
 writeEnvTypes(envString, cliConfig.typesOutput);
 if (cliConfig.exampleEnvPath) {
-  writeExampleEnv(envString, cliConfig.exampleEnvPath);
+  writeExampleEnv(envString, join(cliConfig.exampleEnvPath, ".env.example"));
 }
