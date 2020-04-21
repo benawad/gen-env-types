@@ -1,6 +1,6 @@
 # gen-env-types
 
-Generate a .d.ts and .env.example file from your .env file
+Generate a `.d.ts` and `.env.example` file from your .env file
 
 ## Usage
 
