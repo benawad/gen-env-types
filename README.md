@@ -1,6 +1,24 @@
 # gen-env-types
 
-Generate a `.d.ts` and `.env.example` file from your `.env` file
+Takes your `.env` file as input
+
+```
+SESSION_SECRET=asdjpfowqip
+STRIPE_ACCESS_TOKEN=qoi120wqe
+```
+
+And generates a `.d.ts` file
+
+```
+declare namespace NodeJS {
+  export interface ProcessEnv {
+    SESSION_SECRET: string;
+    STRIPE_ACCESS_TOKEN: string;
+  }
+}
+```
+
+Now `process.env.SESSION_SECRET` will autocomplete and be type-safe.
 
 ## Usage
 
