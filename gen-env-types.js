@@ -100,7 +100,7 @@ const envString = readFileSync(cliConfig.envPath, {
 
 function writeEnvTypes(envString, path) {
   writeFileSync(
-    join(__dirname, path),
+    path,
     `declare namespace NodeJS {
   export interface ProcessEnv {
     ${envString
@@ -111,17 +111,21 @@ function writeEnvTypes(envString, path) {
 }
 `
   );
+
+  console.log("Wrote env types to: ", path);
 }
 
 function writeExampleEnv(envString, path) {
   writeFileSync(
-    join(__dirname, path),
+    path,
     `${envString
       .split("\n")
       .map((x) => `${x.split("=")[0]}=`)
       .join("\n")}
       `
   );
+
+  console.log("Wrote example env to: ", path);
 }
 
 writeEnvTypes(envString, cliConfig.typesOutput);
