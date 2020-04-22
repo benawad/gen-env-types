@@ -1,6 +1,6 @@
 {
   "name": "gen-env-types",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "bin": {
     "gen-env-types": "gen-env-types.js"
   },
