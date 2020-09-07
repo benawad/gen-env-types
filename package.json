@@ -4,6 +4,9 @@
   "bin": {
     "gen-env-types": "gen-env-types.js"
   },
+  "scripts": {
+    "semantic-release": "semantic-release"
+  },
   "description": "",
   "main": "gen-env-types.js",
   "keywords": [],
@@ -14,5 +17,14 @@
   "license": "ISC",
   "dependencies": {
     "chalk": "^4.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "branches": [
+      "master"
+    ]
+  },
+  "devDependencies": {
+    "semantic-release": "^17.1.1"
   }
 }
