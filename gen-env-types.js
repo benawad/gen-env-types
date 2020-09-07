@@ -4,6 +4,7 @@ const pkg = require("./package.json");
 const chalk = require("chalk");
 const { join } = require("path");
 
+// hi
 const printVersion = () => console.log("v" + pkg.version);
 const printHelp = (exitCode) => {
   console.log(
@@ -105,7 +106,7 @@ function writeEnvTypes(envString, path) {
   export interface ProcessEnv {
     ${envString
       .split("\n")
-      .filter(line => line)
+      .filter((line) => line)
       .map((x, i) => `${i ? "    " : ""}${x.split("=")[0]}: string;`)
       .join("\n")}
   }
@@ -121,7 +122,7 @@ function writeExampleEnv(envString, path) {
     path,
     `${envString
       .split("\n")
-      .filter(line => line)
+      .filter((line) => line)
       .map((x) => `${x.split("=")[0]}=`)
       .join("\n")}`
   );
