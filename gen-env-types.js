@@ -4,7 +4,6 @@ const pkg = require("./package.json");
 const chalk = require("chalk");
 const { join } = require("path");
 
-// hi
 const printVersion = () => console.log("v" + pkg.version);
 const printHelp = (exitCode) => {
   console.log(
