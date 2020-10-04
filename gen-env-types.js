@@ -104,7 +104,7 @@ declare namespace NodeJS {
   export interface ProcessEnv {
     ${envString
       .split("\n")
-      .filter((line) => line && !line.startsWith('#'))
+      .filter((line) => line && line.trim().indexOf('#') !== 0)
       .map((x, i) => `${i ? "    " : ""}${x.split("=")[0]}: string;`)
       .join("\n")}
   }
