@@ -98,24 +98,19 @@ const envString = readFileSync(cliConfig.envPath, {
   encoding: "utf8",
 });
 
-function buildEnvTypes(envString){
-  return `
-declare namespace NodeJS {
+function writeEnvTypes(envString, path) {
+  writeFileSync(
+    path,
+    `declare namespace NodeJS {
   export interface ProcessEnv {
     ${envString
       .split("\n")
-      .filter((line) => line && line.trim().indexOf('#') !== 0)
-      .map((x, i) => `${i ? "    " : ""}${x.split("=")[0]}: string;`)
+      .filter((line) => line.trim() && line.trim().indexOf("#") !== 0)
+      .map((x, i) => `${i ? "    ": ""}${x.trim().split("=")[0]}: string;`)
       .join("\n")}
   }
 }
 `
-}
-
-function writeEnvTypes(envString, path) {
-  writeFileSync(
-    path,
-    buildEnvTypes(envString)
   );
 
   console.log("Wrote env types to: ", path);
