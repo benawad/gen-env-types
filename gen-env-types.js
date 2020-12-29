@@ -117,7 +117,6 @@ function writeEnvTypes(envString, path) {
 }
 
 function writeExampleEnv(envString, path) {
-  console.log(envString);
   writeFileSync(
     path,
     `${envString
