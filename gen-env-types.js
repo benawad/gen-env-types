@@ -106,7 +106,7 @@ function writeEnvTypes(envString, path) {
     ${envString
       .split("\n")
       .filter((line) => line.trim() && line.trim().indexOf("#") !== 0)
-      .map((x, i) => `${i ? "    ": ""}${x.trim().split("=")[0]}: string;`)
+      .map((x, i) => `${i ? "    " : ""}${x.trim().split("=")[0]}: string;`)
       .join("\n")}
   }
 }
@@ -121,8 +121,11 @@ function writeExampleEnv(envString, path) {
     path,
     `${envString
       .split("\n")
-      .filter((line) => line)
-      .map((x) => `${x.split("=")[0]}=`)
+      .filter((line) => line.trim())
+      .map((x) => {
+        if (x.trim().indexOf("#") == 0) return x.trim();
+        return `${x.trim().split("=")[0]}=`;
+      })
       .join("\n")}`
   );
 
