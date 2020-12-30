@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const { readFileSync, writeFileSync, existsSync } = require("fs");
+const { readFileSync, writeFileSync, existsSync, lstatSync } = require("fs");
 const pkg = require("./package.json");
 const chalk = require("chalk");
 const { join } = require("path");
@@ -74,9 +74,18 @@ const parseArgs = (args) => {
         if (!existsSync(arg)) {
           showError(".env file doesn't exist at path: " + arg);
         }
+
+        if (!lstatSync(arg).isFile()) {
+          showError(`${arg} is not a file.`);
+        }
+
         cliConfig.envPath = arg;
       }
     }
+  }
+
+  if (!cliConfig.envPath && existsSync(join(process.cwd(), '.env'))) {
+    cliConfig.envPath = join(process.cwd(), '.env');
   }
 
   return cliConfig;
