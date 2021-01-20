@@ -7,7 +7,7 @@ SESSION_SECRET=asdjpfowqip
 STRIPE_ACCESS_TOKEN=qoi120wqe
 ```
 
-And generates a `.d.ts` file
+And generates a `.d.ts` file 
 
 ```
 declare namespace NodeJS {
