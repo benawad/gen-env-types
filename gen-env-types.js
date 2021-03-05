@@ -115,7 +115,17 @@ function writeEnvTypes(envString, path) {
     ${envString
       .split("\n")
       .filter((line) => line.trim() && line.trim().indexOf("#") !== 0)
-      .map((x, i) => `${i ? "    " : ""}${x.trim().split("=")[0]}: string;`)
+      .map((x, i) => {
+        const union = x.split('"').pop().trim()
+
+        if (union) {
+          const stringLiterals = union.replace("#", "").split(" | ")
+
+          return `${i ? "    " : ""}${x.split("=")[0]}: ${stringLiterals.map((text) => `"${text.trim()}"`).join(" | ")};`
+        }
+
+        return `${i ? "    " : ""}${x.trim().split("=")[0]}: string;`
+      })
       .join("\n")}
   }
 }
