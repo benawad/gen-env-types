@@ -9,7 +9,7 @@ STRIPE_ACCESS_TOKEN=qoi120wqe
 
 And generates a `.d.ts` file
 
-```
+```typescript
 declare namespace NodeJS {
   export interface ProcessEnv {
     SESSION_SECRET: string;
@@ -20,13 +20,28 @@ declare namespace NodeJS {
 
 Now `process.env.SESSION_SECRET` will autocomplete and be type-safe.
 
-## Usage
+If you want to generate a union instead of string type, add an inline comment to your `.env` file:
 
 ```
+NODE_ENV = "production" # production | development
+```
+
+```typescript
+declare namespace NodeJS {
+  export interface ProcessEnv {
+    NODE_ENV: "production" | "development";
+  }
+}
+```
+
+## Usage
+
+```bash
 npx gen-env-types path/to/.env
 ```
 
 ## Options
+
 ```
   -V, --version               Show version number
   -h, --help                  Show usage information
@@ -36,6 +51,6 @@ npx gen-env-types path/to/.env
 
 ## Example with options
 
-```
+```bash
 npx gen-env-types .env -o src/types/env.d.ts -e .
 ```
