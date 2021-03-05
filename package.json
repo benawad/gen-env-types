@@ -16,7 +16,8 @@
   "bugs": "https://github.com/benawad/gen-env-types/issues",
   "license": "ISC",
   "dependencies": {
-    "chalk": "^4.0.0"
+    "chalk": "^4.0.0",
+    "dotenv": "^8.2.0"
   },
   "publishConfig": {
     "access": "public",

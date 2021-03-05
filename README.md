@@ -2,7 +2,7 @@
 
 Takes your `.env` file as input
 
-```
+```toml
 SESSION_SECRET=asdjpfowqip
 STRIPE_ACCESS_TOKEN=qoi120wqe
 ```
@@ -22,7 +22,10 @@ Now `process.env.SESSION_SECRET` will autocomplete and be type-safe.
 
 If you want to generate a union instead of string type, add an inline comment to your `.env` file:
 
-```
+```toml
+NODE_ENV=production # production | development
+
+# Also works with strings!
 NODE_ENV = "production" # production | development
 ```
 
@@ -47,10 +50,16 @@ npx gen-env-types path/to/.env
   -h, --help                  Show usage information
   -o, --types-output          Output name/path for types file | defaults to `env.d.ts`
   -e, --example-env-path      Path to save .env.example file
+  -r,  --rename-example-env   Custom name for .env example output file | defaults to `env.example` if omitted
 ```
 
-## Example with options
+## Examples with options
 
 ```bash
 npx gen-env-types .env -o src/types/env.d.ts -e .
+```
+
+```bash
+# With custom example env file name
+npx gen-env-types .env -o src/types/env.d.ts -e . -r .env.test
 ```
