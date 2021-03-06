@@ -1,8 +1,15 @@
 #!/usr/bin/env node
-const { readFileSync, writeFileSync, existsSync, lstatSync } = require("fs");
+const {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  lstatSync,
+  write,
+} = require("fs");
 const pkg = require("./package.json");
 const chalk = require("chalk");
 const { join } = require("path");
+const { parse } = require("dotenv");
 
 const printVersion = () => console.log("v" + pkg.version);
 const printHelp = (exitCode) => {
@@ -15,10 +22,11 @@ const printHelp = (exitCode) => {
 
 {bold OPTIONS}
 
-  -V, --version               Show version number
-  -h, --help                  Show usage information
-  -o, --types-output          Output name/path for types file | defaults to \`env.d.ts\`
-  -e, --example-env-path      Path to save .env.example file
+  -V,  --version               Show version number
+  -h,  --help                  Show usage information
+  -o,  --types-output          Output name/path for types file | defaults to \`env.d.ts\`
+  -e,  --example-env-path      Path to save .env.example file
+  -r,  --rename-example-env    Custom name for .env example output file | defaults to \`env.example\` if omitted
   `
   );
 
@@ -33,6 +41,7 @@ function showError(msg) {
 const parseArgs = (args) => {
   const cliConfig = {
     typesOutput: "env.d.ts",
+    exampleEnvOutput: ".env.example",
   };
 
   while (args.length > 0) {
@@ -70,6 +79,10 @@ const parseArgs = (args) => {
         }
         cliConfig.exampleEnvPath = exampleEnvPath;
         break;
+      case "-r":
+      case "--rename-example-env":
+        cliConfig.exampleEnvOutput = args.shift();
+        break;
       default: {
         if (!existsSync(arg)) {
           showError(".env file doesn't exist at path: " + arg);
@@ -84,8 +97,8 @@ const parseArgs = (args) => {
     }
   }
 
-  if (!cliConfig.envPath && existsSync(join(process.cwd(), '.env'))) {
-    cliConfig.envPath = join(process.cwd(), '.env');
+  if (!cliConfig.envPath && existsSync(join(process.cwd(), ".env"))) {
+    cliConfig.envPath = join(process.cwd(), ".env");
   }
 
   return cliConfig;
@@ -107,51 +120,69 @@ const envString = readFileSync(cliConfig.envPath, {
   encoding: "utf8",
 });
 
-function writeEnvTypes(envString, path) {
-  writeFileSync(
-    path,
-    `declare namespace NodeJS {
-  export interface ProcessEnv {
-    ${envString
-      .split("\n")
-      .filter((line) => line.trim() && line.trim().indexOf("#") !== 0)
-      .map((x, i) => {
-        const union = x.split('"').pop().trim()
+const parsedEnvString = parse(envString);
+
+function writeEnvTypes(path) {
+  const moduleDeclaration = `declare namespace NodeJS {
+  interface ProcessEnv {
+    ${Object.entries(parsedEnvString)
+      .map(([key, value], i) => {
+        // Split by last occurence of #
+        const [, union] = value.split(/\#(?=[^\#]+$)/);
 
         if (union) {
-          const stringLiterals = union.replace("#", "").split(" | ")
-
-          return `${i ? "    " : ""}${x.split("=")[0]}: ${stringLiterals.map((text) => `"${text.trim()}"`).join(" | ")};`
+          return `${i ? "    " : ""}${key}: ${union
+            .split("|")
+            .map((stringLiteral) => `"${stringLiteral.trim()}"`)
+            .join(" | ")};`;
         }
 
-        return `${i ? "    " : ""}${x.trim().split("=")[0]}: string;`
+        return `${i ? "    " : ""}${key}: string;`;
       })
       .join("\n")}
   }
-}
-`
-  );
+}`;
+
+  writeFileSync(path, moduleDeclaration);
 
   console.log("Wrote env types to: ", path);
 }
 
-function writeExampleEnv(envString, path) {
-  writeFileSync(
-    path,
-    `${envString
-      .split("\n")
-      .filter((line) => line.trim())
-      .map((x) => {
-        if (x.trim().indexOf("#") == 0) return x.trim();
-        return `${x.trim().split("=")[0]}=`;
-      })
-      .join("\n")}`
-  );
+function writeExampleEnv(parsedExistingEnvString, path) {
+  const out = Object.entries(parsedEnvString)
+    .map(([key]) => `${key}=`)
+    .join("\n");
+
+  const withExistingEnvVariables = Object.entries(
+    parsedExistingEnvString
+  ).reduce((prev, [key, val]) => {
+    const replacedValue = prev.replace(`${key}=`, `${key}=${val}`);
+
+    return replacedValue;
+  }, out);
+
+  writeFileSync(path, withExistingEnvVariables);
 
   console.log("Wrote example env to: ", path);
 }
 
-writeEnvTypes(envString, cliConfig.typesOutput);
+writeEnvTypes(cliConfig.typesOutput);
+
 if (cliConfig.exampleEnvPath) {
-  writeExampleEnv(envString, join(cliConfig.exampleEnvPath, ".env.example"));
+  const outputExampleEnvPath = join(
+    cliConfig.exampleEnvPath,
+    cliConfig.exampleEnvOutput
+  );
+
+  if (existsSync(outputExampleEnvPath)) {
+    const parsedExistingEnvString = parse(
+      readFileSync(outputExampleEnvPath, { encoding: "utf-8" })
+    );
+
+    console.log(parsedExistingEnvString)
+
+    return writeExampleEnv(parsedExistingEnvString, outputExampleEnvPath);
+  }
+
+  writeExampleEnv(parsedEnvString, outputExampleEnvPath);
 }
