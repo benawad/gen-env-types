@@ -123,21 +123,26 @@ const envString = readFileSync(cliConfig.envPath, {
 const parsedEnvString = parse(envString);
 
 function writeEnvTypes(path) {
+  const existingModuleDeclaration =
+    existsSync(path) && readFileSync(path, { encoding: "utf-8" });
+
   const moduleDeclaration = `declare namespace NodeJS {
   interface ProcessEnv {
-    ${Object.entries(parsedEnvString)
-      .map(([key, value], i) => {
-        // Split by last occurence of #
-        const [, union] = value.split(/\#(?=[^\#]+$)/);
-
-        if (union) {
-          return `${i ? "    " : ""}${key}: ${union
-            .split("|")
-            .map((stringLiteral) => `"${stringLiteral.trim()}"`)
-            .join(" | ")};`;
+    ${Object.keys(parsedEnvString)
+      .map((key, i) => {
+        if (!existingModuleDeclaration) {
+          return `${i ? "    " : ""}${key}: string;`;
         }
 
-        return `${i ? "    " : ""}${key}: string;`;
+        const existingPropertySignature = existingModuleDeclaration
+          .split("\n")
+          .find((line) => line.includes(`${key}:`));
+
+        if (!existingPropertySignature) {
+          return `${i ? "    " : ""}${key}: string;`;
+        }
+
+        return `${i ? "    " : ""}${existingPropertySignature.trim()}`;
       })
       .join("\n")}
   }
@@ -148,7 +153,7 @@ function writeEnvTypes(path) {
   console.log("Wrote env types to: ", path);
 }
 
-function writeExampleEnv(parsedExistingEnvString, path) {
+function writeExampleEnv(parsedExistingEnvString, path, isNew) {
   const out = Object.entries(parsedEnvString)
     .map(([key]) => `${key}=`)
     .join("\n");
@@ -161,7 +166,7 @@ function writeExampleEnv(parsedExistingEnvString, path) {
     return replacedValue;
   }, out);
 
-  writeFileSync(path, withExistingEnvVariables);
+  writeFileSync(path, isNew ? out : withExistingEnvVariables);
 
   console.log("Wrote example env to: ", path);
 }
@@ -179,10 +184,8 @@ if (cliConfig.exampleEnvPath) {
       readFileSync(outputExampleEnvPath, { encoding: "utf-8" })
     );
 
-    console.log(parsedExistingEnvString)
-
     return writeExampleEnv(parsedExistingEnvString, outputExampleEnvPath);
   }
 
-  writeExampleEnv(parsedEnvString, outputExampleEnvPath);
+  writeExampleEnv(parsedEnvString, outputExampleEnvPath, true);
 }
