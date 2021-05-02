@@ -2,7 +2,7 @@
 
 Takes your `.env` file as input
 
-```toml
+```sh
 SESSION_SECRET=asdjpfowqip
 STRIPE_ACCESS_TOKEN=qoi120wqe
 ```
@@ -34,7 +34,7 @@ declare namespace NodeJS {
 
 Or if you want to persist `.env.example` values:
 
-```toml
+```sh
 PORT=3000
 ```
 
