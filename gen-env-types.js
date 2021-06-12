@@ -126,27 +126,32 @@ function writeEnvTypes(path) {
   const existingModuleDeclaration =
     existsSync(path) && readFileSync(path, { encoding: "utf-8" });
 
-  const moduleDeclaration = `declare namespace NodeJS {
-  interface ProcessEnv {
-    ${Object.keys(parsedEnvString)
-      .map((key, i) => {
-        if (!existingModuleDeclaration) {
-          return `${i ? "    " : ""}${key}: string;`;
-        }
+  const moduleDeclaration = `declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      ${Object.keys(parsedEnvString)
+        .map((key, i) => {
+          if (!existingModuleDeclaration) {
+            return `${i ? "      " : ""}${key}: string;`;
+          }
 
-        const existingPropertySignature = existingModuleDeclaration
-          .split("\n")
-          .find((line) => line.includes(`${key}:`));
+          const existingPropertySignature = existingModuleDeclaration
+            .split("\n")
+            .find((line) => line.includes(`${key}:`));
 
-        if (!existingPropertySignature) {
-          return `${i ? "    " : ""}${key}: string;`;
-        }
+          if (!existingPropertySignature) {
+            return `${i ? "      " : ""}${key}: string;`;
+          }
 
-        return `${i ? "    " : ""}${existingPropertySignature.trim()}`;
-      })
-      .join("\n")}
+          return `${i ? "      " : ""}${existingPropertySignature.trim()}`;
+        })
+        .join("\n")}
+    }
   }
-}`;
+}
+
+export {}
+`;
 
   writeFileSync(path, moduleDeclaration);
 
