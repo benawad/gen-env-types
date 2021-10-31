@@ -18,6 +18,16 @@ declare namespace NodeJS {
 }
 ```
 
+Include the generated file in your `tsconfig.json` if not already:
+```json
+{
+  "include": [
+    "./env.d.ts"
+  ]
+}
+```
+
+
 Now `process.env.SESSION_SECRET` will autocomplete and be type-safe.
 
 ## Customize
