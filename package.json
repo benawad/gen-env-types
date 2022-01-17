@@ -5,7 +5,8 @@
     "gen-env-types": "gen-env-types.js"
   },
   "scripts": {
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "test": "jest"
   },
   "description": "",
   "main": "gen-env-types.js",
@@ -16,8 +17,7 @@
   "bugs": "https://github.com/benawad/gen-env-types/issues",
   "license": "ISC",
   "dependencies": {
-    "chalk": "^4.0.0",
-    "dotenv": "^8.2.0"
+    "chalk": "^4.0.0"
   },
   "publishConfig": {
     "access": "public",
@@ -26,6 +26,7 @@
     ]
   },
   "devDependencies": {
+    "jest": "^27.4.7",
     "semantic-release": "^17.1.1"
   }
 }
