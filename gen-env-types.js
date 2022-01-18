@@ -1,15 +1,15 @@
 #!/usr/bin/env node
+
 const {
   readFileSync,
   writeFileSync,
   existsSync,
   lstatSync,
-  write,
 } = require("fs");
 const pkg = require("./package.json");
 const chalk = require("chalk");
 const { join } = require("path");
-const { parse } = require("dotenv");
+const { parse } = require("./parse");
 
 const printVersion = () => console.log("v" + pkg.version);
 const printHelp = (exitCode) => {
@@ -27,6 +27,8 @@ const printHelp = (exitCode) => {
   -o,  --types-output          Output name/path for types file | defaults to \`env.d.ts\`
   -e,  --example-env-path      Path to save .env.example file
   -r,  --rename-example-env    Custom name for .env example output file | defaults to \`env.example\` if omitted
+  -k,  --keep-comments         Keep comments/blank lines in .env example output file | defaults to false if omitted.
+                               Not accepting the value. When specified, it will be true.
   `
   );
 
@@ -42,6 +44,7 @@ const parseArgs = (args) => {
   const cliConfig = {
     typesOutput: "env.d.ts",
     exampleEnvOutput: ".env.example",
+    keepComments: false,
   };
 
   while (args.length > 0) {
@@ -75,13 +78,17 @@ const parseArgs = (args) => {
           showError("Expected example env path but none found");
         }
         if (!existsSync(exampleEnvPath)) {
-          showError("Example env path does not exist: ", exampleEnvPath);
+          showError("Example env path does not exist: " + exampleEnvPath);
         }
         cliConfig.exampleEnvPath = exampleEnvPath;
         break;
       case "-r":
       case "--rename-example-env":
         cliConfig.exampleEnvOutput = args.shift();
+        break;
+      case "-k":
+      case "--keep-comment":
+        cliConfig.keepComments = true;
         break;
       default: {
         if (!existsSync(arg)) {
@@ -120,7 +127,10 @@ const envString = readFileSync(cliConfig.envPath, {
   encoding: "utf8",
 });
 
+// Parse env string with comments and blank lines
 const parsedEnvString = parse(envString);
+// Filter out blank lines and comments
+const filteredEnvString = parsedEnvString.filter((line) => line.isEnvVar);
 
 function writeEnvTypes(path) {
   const existingModuleDeclaration =
@@ -129,23 +139,23 @@ function writeEnvTypes(path) {
   const moduleDeclaration = `declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      ${Object.keys(parsedEnvString)
-        .map((key, i) => {
-          if (!existingModuleDeclaration) {
-            return `${i ? "      " : ""}${key}: string;`;
-          }
+      ${filteredEnvString
+    .map(({key}, i) => {
+      if (!existingModuleDeclaration) {
+        return `${i ? "      " : ""}${key}: string;`;
+      }
 
-          const existingPropertySignature = existingModuleDeclaration
-            .split("\n")
-            .find((line) => line.includes(`${key}:`));
+      const existingPropertySignature = existingModuleDeclaration
+        .split("\n")
+        .find((line) => line.includes(`${key}:`));
 
-          if (!existingPropertySignature) {
-            return `${i ? "      " : ""}${key}: string;`;
-          }
+      if (!existingPropertySignature) {
+        return `${i ? "      " : ""}${key}: string;`;
+      }
 
-          return `${i ? "      " : ""}${existingPropertySignature.trim()}`;
-        })
-        .join("\n")}
+      return `${i ? "      " : ""}${existingPropertySignature.trim()}`;
+    })
+    .join("\n")}
     }
   }
 }
@@ -159,16 +169,16 @@ export {}
 }
 
 function writeExampleEnv(parsedExistingEnvString, path, isNew) {
-  const out = Object.entries(parsedEnvString)
-    .map(([key]) => `${key}=`)
+  const out = (cliConfig.keepComments? parsedEnvString: filteredEnvString)
+    .map(({key, isEnvVar,value}) => {
+      if(isEnvVar) return `${key}=`;
+      // Comment or blank value
+      return value;
+    })
     .join("\n");
 
-  const withExistingEnvVariables = Object.entries(
-    parsedExistingEnvString
-  ).reduce((prev, [key, val]) => {
-    const replacedValue = prev.replace(`${key}=`, `${key}=${val}`);
-
-    return replacedValue;
+  const withExistingEnvVariables = parsedExistingEnvString.reduce((strContent, {key, value}) => {
+    return strContent.replace(`${key}=`, `${key}=${value}`);
   }, out);
 
   writeFileSync(path, isNew ? out : withExistingEnvVariables);
@@ -192,5 +202,5 @@ if (cliConfig.exampleEnvPath) {
     return writeExampleEnv(parsedExistingEnvString, outputExampleEnvPath);
   }
 
-  writeExampleEnv(parsedEnvString, outputExampleEnvPath, true);
+  writeExampleEnv(filteredEnvString, outputExampleEnvPath, true);
 }
