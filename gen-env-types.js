@@ -87,7 +87,7 @@ const parseArgs = (args) => {
         cliConfig.exampleEnvOutput = args.shift();
         break;
       case "-k":
-      case "--keep-comment":
+      case "--keep-comments":
         cliConfig.keepComments = true;
         break;
       default: {
