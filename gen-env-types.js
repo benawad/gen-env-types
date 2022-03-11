@@ -26,6 +26,8 @@ const printHelp = (exitCode) => {
   -h,  --help                  Show usage information
   -o,  --types-output          Output name/path for types file | defaults to \`env.d.ts\`
   -e,  --example-env-path      Path to save .env.example file
+  -O,  --optional              Make some of the environment variables optional.
+                               Accepts a list of environment variables to be made optional.
   -r,  --rename-example-env    Custom name for .env example output file | defaults to \`env.example\` if omitted
   -k,  --keep-comments         Keep comments/blank lines in .env example output file | defaults to false if omitted.
                                Not accepting the value. When specified, it will be true.
@@ -45,6 +47,7 @@ const parseArgs = (args) => {
     typesOutput: "env.d.ts",
     exampleEnvOutput: ".env.example",
     keepComments: false,
+    listOfOptionalVariables: []
   };
 
   while (args.length > 0) {
@@ -60,6 +63,16 @@ const parseArgs = (args) => {
       case "-V":
       case "--version":
         cliConfig.version = true;
+        break;
+      case "-O":
+      case "--optional":
+        const listOfOptionalVariables = args.shift();
+        if (!listOfOptionalVariables) {
+          showError(
+            "Expected a list of optional variables, bad input: " + listOfOptionalVariables
+          );
+        }
+        cliConfig.listOfOptionalVariables = listOfOptionalVariables;
         break;
       case "-o":
       case "--types-output":
@@ -117,10 +130,10 @@ if (!cliConfig.envPath) {
   printHelp(1);
 }
 if (cliConfig.help) {
-  return printHelp(0);
+  printHelp(0);
 }
 if (cliConfig.version) {
-  return printVersion();
+  printVersion();
 }
 
 const envString = readFileSync(cliConfig.envPath, {
@@ -141,16 +154,17 @@ function writeEnvTypes(path) {
     interface ProcessEnv {
       ${filteredEnvString
     .map(({key}, i) => {
+      const isKeyOptional = cliConfig.listOfOptionalVariables.length > 0 && cliConfig.listOfOptionalVariables.includes(key);
       if (!existingModuleDeclaration) {
-        return `${i ? "      " : ""}${key}: string;`;
+        return `${i ? "      " : ""}${key}${isKeyOptional ? '?' : ''}: string;`;
       }
 
       const existingPropertySignature = existingModuleDeclaration
         .split("\n")
-        .find((line) => line.includes(`${key}:`));
+        .find((line) => line.includes(`${key}:`) || line.includes(`${key}?:`));
 
       if (!existingPropertySignature) {
-        return `${i ? "      " : ""}${key}: string;`;
+        return `${i ? "      " : ""}${key}${isKeyOptional ? '?' : ''}: string;`;
       }
 
       return `${i ? "      " : ""}${existingPropertySignature.trim()}`;
@@ -166,10 +180,12 @@ export {}
   writeFileSync(path, moduleDeclaration);
 
   console.log("Wrote env types to: ", path);
+
+  return moduleDeclaration;
 }
 
 function writeExampleEnv(parsedExistingEnvString, path, isNew) {
-  const out = (cliConfig.keepComments? parsedEnvString: filteredEnvString)
+  const out = (cliConfig.keepComments ? parsedEnvString: filteredEnvString)
     .map(({key, isEnvVar,value}) => {
       if(isEnvVar) return `${key}=`;
       // Comment or blank value
@@ -199,8 +215,24 @@ if (cliConfig.exampleEnvPath) {
       readFileSync(outputExampleEnvPath, { encoding: "utf-8" })
     );
 
-    return writeExampleEnv(parsedExistingEnvString, outputExampleEnvPath);
+    writeExampleEnv(parsedExistingEnvString, outputExampleEnvPath);
   }
 
   writeExampleEnv(filteredEnvString, outputExampleEnvPath, true);
+}
+
+module.exports = {
+    /**
+   * @description Writes environment types to a file
+   * @param {string} path
+   * @param {{
+   *   key: string,
+   *   value: string,
+   *   isEnvVar: boolean,
+   * }[]} filteredEnvString
+   * @param {string[]} listOfOptionalVariables
+   * @returns the content of the created file
+   */
+  writeEnvTypes,
+  parseArgs
 }
