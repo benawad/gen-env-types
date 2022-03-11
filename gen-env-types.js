@@ -225,14 +225,7 @@ module.exports = {
     /**
    * @description Writes environment types to a file
    * @param {string} path
-   * @param {{
-   *   key: string,
-   *   value: string,
-   *   isEnvVar: boolean,
-   * }[]} filteredEnvString
-   * @param {string[]} listOfOptionalVariables
    * @returns the content of the created file
    */
-  writeEnvTypes,
-  parseArgs
+  writeEnvTypes
 }
