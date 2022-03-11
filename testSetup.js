@@ -1,0 +1,1 @@
+process.argv = ['node', 'jest', 'test/.env.test', '--types-output', 'env.d.ts', '--example-env-path', 'test', '--optional', '[OPTIONAL_SECRET]'];

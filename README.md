@@ -61,6 +61,8 @@ npx gen-env-types path/to/.env
   -h, --help                  Show usage information
   -o, --types-output          Output name/path for types file | defaults to `env.d.ts`
   -e, --example-env-path      Path to save .env.example file
+  -O,  --optional [vars]      Make some of the environment variables optional.
+                              Accepts a list of environment variables to be made optional.
   -r, --rename-example-env    Custom name for .env example output file | defaults to `env.example` if omitted
   -k, --keep-comments         Keep comments/blank lines in .env example output file | defaults to false if omitted.
                               Not accepting the value. When specified, it will be true.
