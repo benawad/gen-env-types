@@ -216,9 +216,9 @@ if (cliConfig.exampleEnvPath) {
     );
 
     writeExampleEnv(parsedExistingEnvString, outputExampleEnvPath);
+  } else {
+    writeExampleEnv(filteredEnvString, outputExampleEnvPath, true);
   }
-
-  writeExampleEnv(filteredEnvString, outputExampleEnvPath, true);
 }
 
 module.exports = {
