@@ -31,6 +31,7 @@ const printHelp = (exitCode) => {
   -r,  --rename-example-env    Custom name for .env example output file | defaults to \`env.example\` if omitted
   -k,  --keep-comments         Keep comments/blank lines in .env example output file | defaults to false if omitted.
                                Not accepting the value. When specified, it will be true.
+  -b,  --browser               Output browser compatible types instead of NodeJS["ProcessEnv"] | defaults to false if omitted.
   `
   );
 
@@ -103,6 +104,10 @@ const parseArgs = (args) => {
       case "--keep-comments":
         cliConfig.keepComments = true;
         break;
+      case "-b":
+      case "--browser":
+        cliConfig.browser = true;
+        break;
       default: {
         if (!existsSync(arg)) {
           showError(".env file doesn't exist at path: " + arg);
@@ -150,8 +155,8 @@ function writeEnvTypes(path) {
     existsSync(path) && readFileSync(path, { encoding: "utf-8" });
 
   const moduleDeclaration = `declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
+  ${cli.config.browser ? "var process: {" : "namespace NodeJS {"}
+    ${cli.config.browser ? "env: {" : "interface ProcessEnv {"}
       ${filteredEnvString
     .map(({key}, i) => {
       const isKeyOptional = cliConfig.listOfOptionalVariables.length > 0 && cliConfig.listOfOptionalVariables.includes(key);

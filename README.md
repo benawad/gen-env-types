@@ -66,6 +66,7 @@ npx gen-env-types path/to/.env
   -r, --rename-example-env    Custom name for .env example output file | defaults to `env.example` if omitted
   -k, --keep-comments         Keep comments/blank lines in .env example output file | defaults to false if omitted.
                               Not accepting the value. When specified, it will be true.
+  -b,  --browser              Output browser compatible types instead of NodeJS["ProcessEnv"] | defaults to false if omitted.                            
 ```
 
 ## Examples with options
