@@ -155,8 +155,8 @@ function writeEnvTypes(path) {
     existsSync(path) && readFileSync(path, { encoding: "utf-8" });
 
   const moduleDeclaration = `declare global {
-  ${cli.config.browser ? "var process: {" : "namespace NodeJS {"}
-    ${cli.config.browser ? "env: {" : "interface ProcessEnv {"}
+  ${cliConfig.browser ? "var process: {" : "namespace NodeJS {"}
+    ${cliConfig.browser ? "env: {" : "interface ProcessEnv {"}
       ${filteredEnvString
     .map(({key}, i) => {
       const isKeyOptional = cliConfig.listOfOptionalVariables.length > 0 && cliConfig.listOfOptionalVariables.includes(key);
